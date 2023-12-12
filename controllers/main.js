@@ -4,7 +4,7 @@ const { streamVideo } = require('../services/servefile');
 
 router.get('/:videoName', (req, res) => {
   const videoPath = req.params.videoName;
-  const range = req.headers.range;
+  const range = 'bytes=0-2848207'; //req.headers.range;
   if (!range) {
     res.status(400).send("Requires Range header");
     return;
