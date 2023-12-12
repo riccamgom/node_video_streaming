@@ -1,9 +1,29 @@
 const express = require('express');
 const router = express.Router();
+const { streamVideo } = require('../services/servefile');
 
-// Main routes
-router.get('/', (req, res) => {
-    res.send('Respuesta de la ruta principal');
+router.get('/:videoName', (req, res) => {
+  const videoPath = req.params.videoName;
+  const range = req.headers.range;
+  if (!range) {
+    res.status(400).send("Requires Range header");
+    return;
+  }
+
+  streamVideo(videoPath, range)
+    .then(data => {
+      res.writeHead(206, {
+        "Content-Range": `bytes ${data.start}-${data.end}/${data.total}`,
+        "Accept-Ranges": "bytes",
+        "Content-Length": data.chunksize,
+        "Content-Type": "video/mp4"
+      });
+      data.stream.pipe(res);
+    })
+    .catch(error => {
+      res.status(404).send(error);
+    });
 });
 
 module.exports = router;
+
